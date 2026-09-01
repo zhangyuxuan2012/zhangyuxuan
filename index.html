@@ -2330,9 +2330,9 @@ body.mini-dragging { cursor: ns-resize !important; user-select: none !important;
   </div>
 </div>
 <!-- 右上角「切换移动端」胶囊链接 -->
-<a class="switch-mobile-link" href="https://zhangyuxuan2012.github.io/zhangyuxuan111/" target="_blank" rel="noopener" title="切换到移动端版本">
+<button class="switch-mobile-link" id="switch-mobile-btn" title="切换到移动端版本" style="background:none;border:none;cursor:pointer;color:inherit;font:inherit;padding:0;display:inline-flex;align-items:center;gap:4px;">
   <span class="sml-icon">📱</span> 切换移动端
-</a>
+</button>
 <main id="content" class="content">
   <div id="loading-bar" class="loading-bar"></div>
   <div class="pull-refresh-indicator" id="pull-refresh">
@@ -5594,7 +5594,13 @@ body.mini-dragging { cursor: ns-resize !important; user-select: none !important;
     if (deviceMobileBtn) {
       deviceMobileBtn.addEventListener('click', () => {
         try { localStorage.setItem(LS_DEVICE_CHOICE, 'mobile'); } catch {}
-        window.location.href = 'https://zhangyuxuan2012.github.io/zhangyuxuan111/';
+        var mUrl = 'https://zhangyuxuan2012.github.io/zhangyuxuan111/';
+        if (typeof createTab === 'function') {
+          var mt = createTab(mUrl);
+          if (mt && typeof activateTab === 'function') setTimeout(function(){ try { activateTab(mt.id); } catch(e){} }, 0);
+        } else {
+          window.open(mUrl, '_blank');
+        }
       });
     }
     if (deviceOverlay) {
@@ -7818,10 +7824,36 @@ body.mini-dragging { cursor: ns-resize !important; user-select: none !important;
     } catch(e){}
     return false;
   }
+  /* ---------- 切换移动端按钮（在浏览器内部新标签打开，不跳转默认浏览器） ---------- */
+  var switchMobileBtn = document.getElementById('switch-mobile-btn');
+  if (switchMobileBtn) switchMobileBtn.addEventListener('click', function(){
+    var mobileUrl = 'https://zhangyuxuan2012.github.io/zhangyuxuan111/';
+    if (typeof openTabInApp === 'function' && openTabInApp(mobileUrl)) return;
+    if (typeof createTab === 'function') {
+      var t = createTab(mobileUrl);
+      if (t && typeof activateTab === 'function') setTimeout(function(){ try { activateTab(t.id); } catch(e){} }, 0);
+      return;
+    }
+    window.open(mobileUrl, '_blank');
+  });
   var aiBtn = document.getElementById('tool-ai');
   if (aiBtn) aiBtn.addEventListener('click', function(){
     safeClose();
-    var u = 'https://duckduckgo.com/?q=hi&ia=chat&iaxm=chat';
+    // AI 助手：随机推荐提示词，每次打开都有不同的推荐方向
+    var aiPrompts = [
+      '推荐3个免费实用的在线工具网站，无需注册即可使用',
+      '推荐5个适合开发者学习编程的免费网站',
+      '推荐3个无广告、纯净的视频播放网站',
+      '推荐5个免费高清图片素材网站，可商用',
+      '推荐3个在线办公协作工具，提升效率',
+      '推荐5个有趣的在线小游戏网站，摸鱼必备',
+      '推荐3个免费在线设计工具，无需安装PS',
+      '推荐5个优质中文学习资源网站',
+      '推荐3个免费在线PDF处理工具网站',
+      '推荐5个实用的浏览器插件推荐网站'
+    ];
+    var randomPrompt = aiPrompts[Math.floor(Math.random() * aiPrompts.length)];
+    var u = 'https://duckduckgo.com/?q=' + encodeURIComponent(randomPrompt) + '&ia=chat&iaxm=chat';
     if (!openTabInApp(u)) window.open(u, '_blank');
   });
   var trBtn = document.getElementById('tool-translate');
@@ -8264,8 +8296,8 @@ body.mini-dragging { cursor: ns-resize !important; user-select: none !important;
 
   // 5.5 书签/历史面板同步渲染入口（导入后刷新）
   window.AuroraImport.refreshPanels = function () {
-    try { if (typeof renderBookmarksList === 'function') renderBookmarksList(); } catch (e) {}
-    try { if (typeof updateBookmarksPanel === 'function') updateBookmarksPanel(); } catch (e) {}
+    try { if (typeof renderBookmarks === 'function') renderBookmarks(); } catch (e) {}
+    try { if (typeof renderHistory === 'function') renderHistory(); } catch (e) {}
   };
   /* ==================== V7.2 隐私浏览 + 标签页个性化 ==================== */
   window.__PRIVACY__ = false;
